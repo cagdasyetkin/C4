@@ -1,0 +1,67 @@
+---
+title: "Cloud Computing with R"
+output: html_notebook
+---
+
+Install your libraries if you dont have them already:
+```{r}
+library(aws.s3)
+library(Rcrawler)
+```
+
+Download your accessKeys from AWS and place them to your Downloads directory
+```{r}
+keyTable <- read.csv("~/Downloads/accessKeys.csv", header = T)
+AWS_ACCESS_KEY_ID <- as.character(keyTable$Access.key.ID)
+AWS_SECRET_ACCESS_KEY <- as.character(keyTable$Secret.access.key)
+```
+
+Activate
+```{r}
+Sys.setenv("AWS_ACCESS_KEY_ID" = AWS_ACCESS_KEY_ID,
+           "AWS_SECRET_ACCESS_KEY" = AWS_SECRET_ACCESS_KEY,
+           "AWS_DEFAULT_REGION" = "eu-west-1") 
+```
+
+Get the website content:
+```{r}
+my_url <- "https://www.nytimes.com/"
+my_content <- ContentScraper(my_url, astext = T, XpathPatterns = c("."))
+
+```
+
+Make a unique s3 bucket name
+```{r}
+my_name <- "cagdas-"
+bucket_name <- paste(c(my_name, sample(c(0:9, letters), size = 10, replace = TRUE)), collapse = "")
+#bucket_name <- 'cagdas-abf5zi5508'
+print(bucket_name)
+```
+
+Now we can create the bucket on s3
+```{r}
+#put_bucket(bucket_name)
+```
+
+Create a text file using the website content:
+```{r}
+write.csv(my_content[[1]], "my_content.txt")
+```
+
+
+Send the text file to AWS S3 bucket
+```{r}
+put_object("my_content.txt", bucket = bucket_name)
+```
+
+We have data on The Cloud! Now let's get it back on our computer:
+```{r}
+save_object("my_content.txt", bucket = bucket_name, file = "my_content_s3.txt")
+```
+
+
+```{r}
+# We're finished with this bucket, so let's delete it.
+delete_bucket(bucket_name)
+```
+
