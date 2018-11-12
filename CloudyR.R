@@ -20,23 +20,59 @@ detect_language("This is a test sentence in English")
 # how about some non-sarcastic sentiment?
 detect_sentiment("I have never been happier. This is the best day ever.")
 
+# read a large text file and check its sentiment
+short_story <- readLines('short_story.txt') # read the file
+length(short_story) # check how long it is
+a <- detect_sentiment(short_story[1]) # get sentiment from the first line
+a # it is a dataframe
+a$Sentiment # overall sentiment
+a$Negative # negativity score
+a$Positive # positivity score
+
+detect_sentiment(short_story[2]) # how about second paragraph?
+detect_sentiment(short_story[3]) # and third?
+# this is repeating. we can loop it
+
+library(dplyr)
+library(ggplot2)
+
+sentiment_vector = c()
+positive_vector = c()
+negative_vector = c()
+for (i in 1:length(short_story)) {   
+  if (short_story[i] > "") {
+    df <- detect_sentiment(short_story[i])
+    sentiment_vector <- c(sentiment_vector, as.character(df$Sentiment))
+    positive_vector <- c(positive_vector, df$Positive)
+    negative_vector <- c(negative_vector, df$Negative)
+  } 
+}
+
+# ...and plot them
+data_frame(positive_vector, negative_vector, sentiment_vector) %>%
+  ggplot(aes(positive_vector, negative_vector)) +
+  geom_point() +
+  ggtitle("positive vs negative sentiments")
+
+
+#We can detect entities in a given text
 txt <- c("Central European University provides education", "Gyorgy Soros is the founder.",
          "Orban Viktor is the prime minister", "Vienna is a city")
 detect_entities(txt)
 
 
-
+# translate some text 
 library(aws.translate)
-# translate some text from English
 translate("Bonjour le monde!", from = "fr", to = "en")
 translate("Guten Tag!", from = "de", to = "en")
 translate("My name is Cagdas", from = 'en', to = 'de')
 
 library(aws.s3)
-# my bucket list on s3
+# i can have a look at my bucket list on s3
 bucketlist()
 
 #Get the website content:
+library(Rcrawler)
 my_url <- "https://www.nytimes.com/"
 my_content <- ContentScraper(my_url, astext = T, XpathPatterns = c("."))
 
@@ -65,3 +101,16 @@ delete_object("my_content.txt", bucket = bucket_name)
 
 # We're finished with this bucket, so let's delete it.
 delete_bucket(bucket_name) #currently the delete_bucket function does not work
+
+
+# Currently I can not make Polly work in R
+library("aws.polly")
+library("tuneR")
+
+# list available voices
+list_voices()
+
+vec <- synthesize("Hello world!", voice = "Joanna")
+# On a mac: "https://stackoverflow.com/questions/23310005/permission-denied-when-playing-wav-file"
+setWavPlayer('/usr/bin/afplay')
+play(vec)
