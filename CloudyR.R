@@ -52,7 +52,9 @@ for (i in 1:length(short_story)) {
 data_frame(positive_vector, negative_vector, sentiment_vector) %>%
   ggplot(aes(positive_vector, negative_vector)) +
   geom_point() +
-  ggtitle("positive vs negative sentiments")
+  ggtitle("positive vs negative sentiments") +
+  xlab("positive sentiments") +
+  ylab("negative sentiments")
 
 
 #We can detect entities in a given text
